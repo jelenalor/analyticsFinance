@@ -27,6 +27,7 @@ for industry in list_of_industry:
             df_is.drop("date", axis=0, inplace=True)
             df_is["symbol"] = ticker
             df_is["industry"] = industry
+            df_is["type"] = "income statement"
             df_is = df_is.loc[:, ~df_is.columns.duplicated()]
             df = pd.concat([df, df_is], axis=0, sort=True)
 
@@ -36,5 +37,10 @@ for industry in list_of_industry:
     if len(industries_processed)%10 == 0:
         print("Processed so far ", len(industries_processed))
 
+
 df.fillna(0, inplace=True)
+df = df.reset_index().rename(columns={"index": "line_item"})
+df = df[['line_item', '2009', '2010', '2011', '2012',
+       '2013', '2014', '2015', '2016', '2017', '2018', 'industry',
+       'symbol', 'type']]
 df.to_csv("data/df_is_full.csv")

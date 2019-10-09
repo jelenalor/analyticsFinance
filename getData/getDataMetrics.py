@@ -35,6 +35,7 @@ for industry in list_of_industry:
             df_m.drop("date", axis=0, inplace=True)
             df_m["symbol"] = ticker
             df_m["industry"] = industry
+            df_m["type"] = "metrics"
             df_m = df_m.loc[:, ~df_m.columns.duplicated()]
             df_m = df_m.loc[index_keep]
             df = pd.concat([df, df_m], axis=0, sort=True)
@@ -46,4 +47,7 @@ for industry in list_of_industry:
 
 df.fillna(0, inplace=True)
 df = df.reset_index().rename(columns={"index": "line_item"})
+df = df[['line_item', '2009', '2010', '2011', '2012',
+       '2013', '2014', '2015', '2016', '2017', '2018', 'industry',
+       'symbol', 'type']]
 df.to_csv("data/df_metrics_full.csv", index=False)

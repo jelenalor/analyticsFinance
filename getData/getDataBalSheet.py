@@ -32,6 +32,7 @@ for industry in list_of_industry:
             df_bs.drop("date", axis=0, inplace=True)
             df_bs["symbol"] = ticker
             df_bs["industry"] = industry
+            df_bs["type"] = "balance sheet"
             df_bs = df_bs.loc[:, ~df_bs.columns.duplicated()]
             df_bs = df_bs.loc[index_keep]
             df = pd.concat([df, df_bs], axis=0, sort=True)
@@ -43,4 +44,7 @@ for industry in list_of_industry:
 
 df.fillna(0, inplace=True)
 df = df.reset_index().rename(columns={"index": "line_item"})
+df = df[['line_item', '2009', '2010', '2011', '2012',
+       '2013', '2014', '2015', '2016', '2017', '2018', 'industry',
+       'symbol', 'type']]
 df.to_csv("data/df_bs_full.csv", index=False)

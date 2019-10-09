@@ -95,9 +95,13 @@ layout = html.Div([
                                'margin': '5px'}),
 
                 html.Div([
-                    dcc.Link('Back home', href='/apps/app1',
+                    dcc.Link('Navigate back to industry analysis', href='/apps/app1',
                              style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
-                                    'color': 'white', 'padding': '5px 10px 100px'})
+                                    'color': 'white', 'padding': '5px 10px 100px'}),
+                    html.Br(),
+                    dcc.Link('Navigate back home', href='/',
+                             style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
+                                    'color': 'white', 'padding': '5px 10px 100px'}),
                 ])
             ],
                 style={'backgroundColor': MY_COLS["blue"],
