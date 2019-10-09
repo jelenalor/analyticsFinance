@@ -147,7 +147,7 @@ def update_figure(hoverOn):
               [Input('url', 'pathname')])
 def display_page(pathname):
     if pathname == '/apps/app1':
-        return app1.layout_app1()
+        return app1.layout
     elif pathname == '/apps/app2':
         return app2.layout
     elif pathname == '/':
