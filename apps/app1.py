@@ -51,12 +51,12 @@ layout = html.Div([
             html.Div([html.H6("Text title"),
 
                         dcc.Dropdown(
-                            id="dropdown_industry",
+                            id="dropdown_industry1",
                             options=[{'label': str(i), 'value': i} for i in list_of_industries],
                             value="Airlines"),
 
                         html.Div([dcc.RadioItems(
-                            id='choice-items',
+                            id='choice-items1',
                             options=[{'label': k, 'value': k} for k in ["income statement",
                                                                         "balance sheet", "metrics"]],
                             value='income statement',
@@ -68,14 +68,14 @@ layout = html.Div([
 
                 html.Div([html.H6("Text title"),
                     dcc.Dropdown(
-                        id="crossfilter-xaxis",
+                        id="crossfilter-xaxis1",
 
                     )], style={"width": "49%", 'display': 'inline-block',
                                'color': COLORS["darktext"]}),
 
                 html.Div([html.H6("Text title"),
                     dcc.Dropdown(
-                        id='crossfilter-yaxis'
+                        id='crossfilter-yaxis1'
 
                     )], style={'width': '49%', 'float': 'right', 'display': 'inline-block',
                                'color': COLORS["darktext"]})],
@@ -86,36 +86,41 @@ layout = html.Div([
 
     html.Div([
             dcc.Graph(
-                id='crossfilter-scatter',
+                id='crossfilter-scatter1',
                 hoverData={'points': [{'customdata': 'AMC',
-                                       'text': 'AMC-AMC Entertainment Holdings Inc. Class A'}]})
+                                       'text': 'AMC-AMC Entertainment Holdings Inc. Class A'}]}
+            )
         ],
             style={'width': '49%', 'display': 'inline-block', 'padding': '0 20'}),
     html.Div(dcc.RangeSlider(
-        id='crossfilter-year-range-slider',
+        id='crossfilter-year-range-slider1',
         min=min(YEARS),
         max=max(YEARS),
         value=[min(YEARS), max(YEARS)],
         step=None,
         marks={str(year): str(year) for year in YEARS}
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'}),
+        html.Div([
+                dcc.Link('Navigate back home', href='/',
+                             style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
+                                    'padding': '5px 10px 500px'})])
 ])
 
 
 @app.callback(
-    Output('crossfilter-xaxis', 'options'),
-    [Input('choice-items', 'value'),
-     Input('dropdown_industry', 'value')])
+    Output('crossfilter-xaxis1', 'options'),
+    [Input('choice-items1', 'value'),
+     Input('dropdown_industry1', 'value')])
 def set_dropdown_options(selected_column, industry):
     all_options = {"income statement": [], "balance sheet": [], "metrics": []}
-    for i in df[df.industry == industry]["type"].unique():
-        all_options[i] = sorted(df[df.type == i]["line_item"].unique())
+    for i in all_options.keys():
+        all_options[i] = sorted(df[(df.type == i) & (df.industry == industry)]["line_item"].unique())
     return [{'label': str(i), 'value': i} for i in all_options[selected_column]]
 
 
 @app.callback(
-    Output('crossfilter-xaxis', 'value'),
-    [Input('crossfilter-xaxis', 'options')])
+    Output('crossfilter-xaxis1', 'value'),
+    [Input('crossfilter-xaxis1', 'options')])
 def set_dropdown_value(available_options):
     if len(available_options) > 0:
         return available_options[0]["value"]
@@ -124,34 +129,33 @@ def set_dropdown_value(available_options):
 
 
 @app.callback(
-    Output('crossfilter-yaxis', 'options'),
-    [Input('choice-items', 'value'),
-     Input('dropdown_industry', 'value')])
+    Output('crossfilter-yaxis1', 'options'),
+    [Input('choice-items1', 'value'),
+     Input('dropdown_industry1', 'value')])
 def set_dropdown_options(selected_column, industry):
     all_options = {"income statement": [], "balance sheet": [], "metrics": []}
-    for i in df[df.industry == industry]["type"].unique():
-        all_options[i] = sorted(df[df.type == i]["line_item"].unique())
+    for i in all_options.keys():
+        all_options[i] = sorted(df[(df.type == i) & (df.industry == industry)]["line_item"].unique())
     return [{'label': str(i), 'value': i} for i in all_options[selected_column]]
 
 
 @app.callback(
-    Output('crossfilter-yaxis', 'value'),
-    [Input('crossfilter-yaxis', 'options')])
+    Output('crossfilter-yaxis1', 'value'),
+    [Input('crossfilter-yaxis1', 'options')])
 def set_dropdown_value(available_options):
     if len(available_options) > 0:
-        return available_options[0]["value"]
+        return available_options[1]["value"]
     else:
         return "Cost of Revenue"
 
 
 @app.callback(
-    Output('crossfilter-scatter', 'figure'),
-    [Input('crossfilter-xaxis', 'value'),
-     Input('crossfilter-yaxis', 'value'),
-     Input('crossfilter-year-range-slider', 'value'),
-     Input('dropdown_industry', 'value')])
+    Output('crossfilter-scatter1', 'figure'),
+    [Input('crossfilter-xaxis1', 'value'),
+     Input('crossfilter-yaxis1', 'value'),
+     Input('crossfilter-year-range-slider1', 'value'),
+     Input('dropdown_industry1', 'value')])
 def update_graph(x_value, y_value, range_slider_value, industry):
-    print(industry)
     dff = df[df.industry == industry]
     dfff = dff[(dff.line_item == x_value) | (dff.line_item == y_value)]
     dfff = pd.pivot_table(pd.melt(dfff, id_vars=["symbol", "line_item"],
