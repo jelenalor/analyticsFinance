@@ -9,6 +9,11 @@ comp_prof = pd.read_csv(r"data/company_profiles.csv")
 comp_prof.dropna(inplace=True)
 
 list_of_industry = comp_prof["industry"].unique()
+index_keep = ['Consolidated Income', 'Cost of Revenue', 'Dividend per Share',
+       'EBIT', 'EBIT Margin', 'EBITDA', 'EBITDA Margin', 'EPS',
+       'EPS Diluted', 'Gross Margin', 'Gross Profit', 'Interest Expense',
+        'Net Income', 'Net Profit Margin', 'Operating Expenses', 'Operating Income',
+        'Profit Margin', 'R&D Expenses', 'Revenue']
 
 df = pd.DataFrame()
 industries_processed = []
@@ -29,6 +34,7 @@ for industry in list_of_industry:
             df_is["industry"] = industry
             df_is["type"] = "income statement"
             df_is = df_is.loc[:, ~df_is.columns.duplicated()]
+            df_is = df_is.loc[index_keep]
             df = pd.concat([df, df_is], axis=0, sort=True)
 
 
