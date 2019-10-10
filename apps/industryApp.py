@@ -2,23 +2,16 @@ import pandas as pd
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
+# My files
 from app import app
-
+import udf
 
 
 """ Load data """
 cp = pd.read_csv(r"data/company_profiles.csv")
-df_is = pd.read_csv(r"data/df_is_full.csv")
-df_bs = pd.read_csv(r"data/df_bs_full.csv")
-df_m = pd.read_csv(r"data/df_metrics_full.csv")
-df_is["type"] = "income statement"
-df_bs["type"] = "balance sheet"
-df_m["type"] = "metrics"
-df = pd.concat([df_is, df_bs, df_m], axis=0)
-
-df.dropna(inplace=True)
+df = udf.load_df()
 list_of_industries = sorted(df["industry"].unique())
 YEARS = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
 
@@ -30,20 +23,6 @@ for i, sym in enumerate(cp["symbol"].unique()):
     COMP_NAME[sym] = cp.iloc[i]["name"]
 
 
-# Base dfff
-base_industry = "Airlines"
-base_x_value = "Consolidated Income"
-base_y_value = "Cost of Revenue"
-dff = df[df.industry == base_industry]
-dfff = dff[(dff.line_item == base_x_value) | (dff.line_item == base_y_value)]
-dfff = pd.pivot_table(pd.melt(dfff, id_vars=["symbol", "line_item"],
-                              value_vars=["2009", "2010", "2011", "2012",
-                                          "2013", "2014", "2015", "2016",
-                                          "2017", "2018"]),
-                      index=["symbol", "variable"],
-                      columns="line_item", values="value", fill_value=0).reset_index()
-dfff = dfff.rename(columns={"variable": "year"})
-dfff["year"] = dfff["year"].astype(int)
 
 """ STYLING """
 COLORS = {
@@ -56,38 +35,6 @@ MY_COLS = {
     "blue": "#00688B",
     "grey": "#9E9E9E"}
 
-
-def create_time_series(dff, dff_mkt, title: str, line_item):
-    traces = []
-    # company data
-    traces.append(go.Scatter(
-            x=dff.iloc[:, 1],
-            y=dff.loc[:, line_item],
-            name="company actual",
-            mode='lines+markers'
-        ))
-
-    traces.append(go.Scatter(
-        x=dff_mkt.iloc[:, 0],
-        y=dff_mkt.loc[:, line_item],
-        name="industry average",
-        mode='lines+markers'
-    ))
-
-    return {"data": traces,
-            'layout': {'height': 225,
-            'margin': {'l': 30, 'b': 30, 'r': 10, 't': 40},
-            'annotations': [{
-                'x': 0, 'y': 0.85, 'xanchor': 'left', 'yanchor': 'bottom',
-                'xref': 'paper', 'yref': 'paper', 'showarrow': False,
-                'align': 'left', 'bgcolor': 'rgba(255, 255, 255, 0.5)',
-                'text': title, 'font': {'size': 14, 'color': "black"},
-                'bordercolor': 'black', 'borderwidth':2,
-                'borderpad':4, 'bgcolor': 'white',
-                'opacity':0.5
-            }],
-            'xaxis': {'showgrid': False},
-            'yaxis': {'automargin': True}}}
 
 
 """ Layout """
@@ -148,8 +95,8 @@ layout = html.Div([
         value=[min(YEARS), max(YEARS)],
         step=None,
         marks={str(year): str(year) for year in YEARS}
-    ), style={'padding': '0px 0px 50px 20px'})],
-        style={'display': 'inline-block', 'width': '49%'}),
+    ), style={'padding': '0px 5px 50px 20px', 'width': '90%'})],
+        style={'display': 'inline-block', 'width': '50%'}),
 
         html.Div([
                     dcc.Graph(id='top-line-plot'),
@@ -218,75 +165,34 @@ def set_dropdown_value(available_options):
      Input('crossfilter-year-range-slider1', 'value'),
      Input('dropdown_industry1', 'value')])
 def update_graph(x_value, y_value, range_slider_value, industry):
-    global dfff
-    dff = df[df.industry == industry]
-    dfff = dff[(dff.line_item == x_value) | (dff.line_item == y_value)]
-    dfff = pd.pivot_table(pd.melt(dfff, id_vars=["symbol", "line_item"],
-                                  value_vars=["2009", "2010", "2011", "2012",
-                                              "2013", "2014", "2015", "2016",
-                                              "2017", "2018"]),
-                          index=["symbol", "variable"],
-                          columns="line_item", values="value", fill_value=0).reset_index()
-    dfff = dfff.rename(columns={"variable": "year"})
-    dfff["year"] = dfff["year"].astype(int)
-    dfff_yrsl = dfff[dfff.year.between(range_slider_value[0],
-                range_slider_value[1], inclusive=True)]
-
-    return {
-        'data': [go.Scatter(
-            x=dfff_yrsl[x_value],
-            y=dfff_yrsl[y_value],
-            text=["-".join([i, COMP_NAME [i]]) for i in dfff["symbol"]],
-            customdata=dfff_yrsl["symbol"],
-            mode='markers',
-            marker={
-                'size': 15,
-                'opacity': 0.5,
-                'line': {'width': 0.5, 'color': 'white'}
-            }
-        )],
-        'layout': go.Layout(
-            title={'text': "Total permit count by zip code area (all years)", 'font': {
-                'family': "Open Sans",
-                'size': 18,
-                'color': COLORS["darktext"]}},
-            xaxis={'automargin': True,
-                'title': x_value
-            },
-            yaxis={'automargin': True,
-                'title': y_value
-            },
-            margin={'l': 70, 'b': 50, 't': 50, 'r': 40},
-            height=420,
-            hovermode='closest'
-        )
-    }
+    dfff = udf.df_for_industry_scatter(df, industry, x_value, y_value, range_slider_value)
+    return udf.create_scatter(dfff, x_value, y_value, COMP_NAME, COLORS)
 
 
 @app.callback(
     Output('top-line-plot', 'figure'),
     [Input('crossfilter-scatter1', 'hoverData'),
-     Input('crossfilter-xaxis1', 'value')])
-def update_top_line_plot(hoverData, xaxis):
-    global dfff
+     Input('crossfilter-xaxis1', 'value'),
+     Input('dropdown_industry1', 'value')])
+def update_top_line_plot(hoverData, xaxis, industry):
     symbol = hoverData["points"][0]["customdata"]
-    dfff_line = dfff[dfff.symbol == symbol]
-    dfff_mkt = dfff.groupby(["year"], as_index=False).mean()
+    dfff_line, dfff_mkt = udf.df_for_industry_plot(df, symbol, xaxis, industry)
     title = f"Line Item: {xaxis} and Company: {COMP_NAME[symbol]}"
-    return create_time_series(dfff_line, dfff_mkt, title, xaxis)
+    return udf.create_time_series(dfff_line, dfff_mkt, title, xaxis)
 
 
 @app.callback(
     Output('bottom-line-plot', 'figure'),
     [Input('crossfilter-scatter1', 'hoverData'),
-     Input('crossfilter-yaxis1', 'value')])
-def update_top_line_plot(hoverData, yaxis):
-    global dfff
+     Input('crossfilter-yaxis1', 'value'),
+     Input('dropdown_industry1', 'value')])
+def update_top_line_plot(hoverData, yaxis, industry):
     symbol = hoverData["points"][0]["customdata"]
-    dfff_line = dfff[dfff.symbol == symbol]
-    dfff_mkt = dfff.groupby(["year"], as_index=False).mean()
+    dfff_line, dfff_mkt = udf.df_for_industry_plot(df, symbol, yaxis, industry)
     title = f"Line Item: {yaxis} and Company: {COMP_NAME[symbol]}"
-    return create_time_series(dfff_line, dfff_mkt, title, yaxis)
+    return udf.create_time_series(dfff_line, dfff_mkt, title, yaxis)
+
+
 
 
 
