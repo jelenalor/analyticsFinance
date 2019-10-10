@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output, State
 import functools
 
 from app import app
-from apps import app1, app2
+from apps import industryApp, companyApp
 
 
 """ Load data """
@@ -28,7 +28,7 @@ COLORS = {
     'darktext': '#050505'
 }
 MY_COLS = {
-    "blue": "red",
+    "blue": "#00688B",
     "grey": "#9E9E9E"}
 
 """ Layout """
@@ -88,32 +88,14 @@ index_layout = html.Div([
         """], style={"textAlign": "center",
                      'width': '70%', 'float': 'right',
                      'display': 'inline-block', 'backgroundColor': MY_COLS["blue"]}),
-            html.Div([
-                html.H6("Text title")],
-                style={"textAlign": "center", 'backgroundColor': MY_COLS["blue"]}),
-
-            html.Div([
-                html.Div([
-                    dcc.Dropdown(
-                        id="dropdown_industry",
-                        options=[{'label': str(i), 'value': i} for i in list_of_industries],
-                        value="Asset Management"
-                    )], style={"width": "40%",
-                               'color': COLORS["darktext"],
-                               'margin': '5px'}),
-
-                html.Div([
-                    dcc.Link('Navigate to Industry Analysis', href='/apps/app1',
-                             style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
-                                    'color': 'white', 'padding': '5px 10px 100px'}),
-                ])
+        html.Br(),
+            dcc.Link('Navigate to Industry Analysis', href='/apps/industryApp',
+                     style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
+                            'color': 'white', 'padding': '5px 10px 100px'}),],
+            style={'backgroundColor': MY_COLS["blue"],
+                   'padding': '2px 5px', 'color': COLORS["text"], 'display': 'inline-block',
+                   'float': 'right', 'width': '55%'})
             ],
-                style={'backgroundColor': MY_COLS["blue"],
-                       'padding': '2px 5px', 'color': COLORS["text"]})
-        ],
-            style={'width': '60%', 'float': 'right',
-                   'display': 'inline-block', 'backgroundColor': MY_COLS["blue"]})],
-
         style={'color': COLORS["darktext"]}),
 
     html.Div([
@@ -123,8 +105,7 @@ index_layout = html.Div([
 
 @functools.lru_cache(maxsize=32)
 @app.callback(
-    [Output('my-boxplot', 'figure'),
-     Output('dropdown_industry', 'value')],
+    Output('my-boxplot', 'figure'),
     [Input('crossfilter-scatter', 'hoverData')])
 def update_figure(hoverOn):
     traces = []
@@ -140,16 +121,16 @@ def update_figure(hoverOn):
                                 margin={"l": 50, "b": 200, "r": 20, "t": 10},
                                 xaxis={"showticklabels": True},
                                 yaxis={"title": "Share price distribution", "range": [-10, 300]},
-                                showlegend=False)}, hoverOn["points"][0]["customdata"]
+                                showlegend=False)}
 
 
 @app.callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
-    if pathname == '/apps/app1':
-        return app1.layout
-    elif pathname == '/apps/app2':
-        return app2.layout
+    if pathname == '/apps/industryApp':
+        return industryApp.layout
+    elif pathname == '/apps/companyApp':
+        return companyApp.layout
     elif pathname == '/':
         return index_layout
     else:

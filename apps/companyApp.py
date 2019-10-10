@@ -95,7 +95,7 @@ layout = html.Div([
                                'margin': '5px'}),
 
                 html.Div([
-                    dcc.Link('Navigate back to industry analysis', href='/apps/app1',
+                    dcc.Link('Navigate to industry analysis', href='/apps/industryApp',
                              style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
                                     'color': 'white', 'padding': '5px 10px 100px'}),
                     html.Br(),

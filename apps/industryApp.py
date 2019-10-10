@@ -19,10 +19,7 @@ df_m["type"] = "metrics"
 df = pd.concat([df_is, df_bs, df_m], axis=0)
 
 df.dropna(inplace=True)
-
 list_of_industries = sorted(df["industry"].unique())
-
-
 YEARS = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
 
 for yr in YEARS:
@@ -31,6 +28,22 @@ for yr in YEARS:
 COMP_NAME = {}
 for i, sym in enumerate(cp["symbol"].unique()):
     COMP_NAME[sym] = cp.iloc[i]["name"]
+
+
+# Base dfff
+base_industry = "Airlines"
+base_x_value = "Consolidated Income"
+base_y_value = "Cost of Revenue"
+dff = df[df.industry == base_industry]
+dfff = dff[(dff.line_item == base_x_value) | (dff.line_item == base_y_value)]
+dfff = pd.pivot_table(pd.melt(dfff, id_vars=["symbol", "line_item"],
+                              value_vars=["2009", "2010", "2011", "2012",
+                                          "2013", "2014", "2015", "2016",
+                                          "2017", "2018"]),
+                      index=["symbol", "variable"],
+                      columns="line_item", values="value", fill_value=0).reset_index()
+dfff = dfff.rename(columns={"variable": "year"})
+dfff["year"] = dfff["year"].astype(int)
 
 """ STYLING """
 COLORS = {
@@ -43,7 +56,44 @@ MY_COLS = {
     "blue": "#00688B",
     "grey": "#9E9E9E"}
 
+
+def create_time_series(dff, dff_mkt, title: str, line_item):
+    traces = []
+    # company data
+    traces.append(go.Scatter(
+            x=dff.iloc[:, 1],
+            y=dff.loc[:, line_item],
+            name="company actual",
+            mode='lines+markers'
+        ))
+
+    traces.append(go.Scatter(
+        x=dff_mkt.iloc[:, 0],
+        y=dff_mkt.loc[:, line_item],
+        name="industry average",
+        mode='lines+markers'
+    ))
+
+    return {"data": traces,
+            'layout': {'height': 225,
+            'margin': {'l': 30, 'b': 30, 'r': 10, 't': 40},
+            'annotations': [{
+                'x': 0, 'y': 0.85, 'xanchor': 'left', 'yanchor': 'bottom',
+                'xref': 'paper', 'yref': 'paper', 'showarrow': False,
+                'align': 'left', 'bgcolor': 'rgba(255, 255, 255, 0.5)',
+                'text': title, 'font': {'size': 14, 'color': "black"},
+                'bordercolor': 'black', 'borderwidth':2,
+                'borderpad':4, 'bgcolor': 'white',
+                'opacity':0.5
+            }],
+            'xaxis': {'showgrid': False},
+            'yaxis': {'automargin': True}}}
+
+
+
+
 """ Layout """
+
 
 layout = html.Div([
     html.Div([html.Div([
@@ -84,14 +134,15 @@ layout = html.Div([
                        'padding': '2px 5px', 'color': COLORS["text"]})
         ]),
 
-    html.Div([
+    html.Div([html.Div([
             dcc.Graph(
                 id='crossfilter-scatter1',
                 hoverData={'points': [{'customdata': 'AMC',
                                        'text': 'AMC-AMC Entertainment Holdings Inc. Class A'}]}
             )
         ],
-            style={'width': '49%', 'display': 'inline-block', 'padding': '0 20'}),
+            ),
+
     html.Div(dcc.RangeSlider(
         id='crossfilter-year-range-slider1',
         min=min(YEARS),
@@ -99,11 +150,24 @@ layout = html.Div([
         value=[min(YEARS), max(YEARS)],
         step=None,
         marks={str(year): str(year) for year in YEARS}
-    ), style={'width': '49%', 'padding': '0px 20px 20px 20px'}),
+    ), style={'padding': '0px 0px 50px 20px'})],
+        style={'display': 'inline-block', 'width': '49%'}),
+
+        html.Div([
+                    dcc.Graph(id='top-line-plot'),
+                    dcc.Graph(id='bottom-line-plot')
+                ], style={'display': 'inline-block', 'width': '50%'}),
+
+
         html.Div([
                 dcc.Link('Navigate back home', href='/',
                              style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
-                                    'padding': '5px 10px 500px'})])
+                                    'padding': '5px 10px 500px'}),
+                html.Br(),
+                dcc.Link('Navigate to Company Analysis', href='/apps/companyApp',
+                         style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
+                                'padding': '5px 10px 500px', 'color': 'red'})
+        ])
 ])
 
 
@@ -156,6 +220,7 @@ def set_dropdown_value(available_options):
      Input('crossfilter-year-range-slider1', 'value'),
      Input('dropdown_industry1', 'value')])
 def update_graph(x_value, y_value, range_slider_value, industry):
+    global dfff
     dff = df[df.industry == industry]
     dfff = dff[(dff.line_item == x_value) | (dff.line_item == y_value)]
     dfff = pd.pivot_table(pd.melt(dfff, id_vars=["symbol", "line_item"],
@@ -166,15 +231,15 @@ def update_graph(x_value, y_value, range_slider_value, industry):
                           columns="line_item", values="value", fill_value=0).reset_index()
     dfff = dfff.rename(columns={"variable": "year"})
     dfff["year"] = dfff["year"].astype(int)
-    dfff = dfff[dfff.year.between(range_slider_value[0],
+    dfff_yrsl = dfff[dfff.year.between(range_slider_value[0],
                 range_slider_value[1], inclusive=True)]
 
     return {
         'data': [go.Scatter(
-            x=dfff[x_value],
-            y=dfff[y_value],
+            x=dfff_yrsl[x_value],
+            y=dfff_yrsl[y_value],
             text=["-".join([i, COMP_NAME [i]]) for i in dfff["symbol"]],
-            customdata=dfff["symbol"],
+            customdata=dfff_yrsl["symbol"],
             mode='markers',
             marker={
                 'size': 15,
@@ -193,9 +258,38 @@ def update_graph(x_value, y_value, range_slider_value, industry):
             yaxis={'automargin': True,
                 'title': y_value
             },
-            margin={'l': 70, 'b': 30, 't': 50, 'r': 40},
+            margin={'l': 70, 'b': 50, 't': 50, 'r': 40},
             height=420,
             hovermode='closest'
         )
     }
+
+
+@app.callback(
+    Output('top-line-plot', 'figure'),
+    [Input('crossfilter-scatter1', 'hoverData'),
+     Input('crossfilter-xaxis1', 'value')])
+def update_top_line_plot(hoverData, xaxis):
+    global dfff
+    symbol = hoverData["points"][0]["customdata"]
+    dfff_line = dfff[dfff.symbol == symbol]
+    dfff_mkt = dfff.groupby(["year"], as_index=False).mean()
+    title = f"Line Item: {xaxis} and Company: {COMP_NAME[symbol]}"
+    return create_time_series(dfff_line, dfff_mkt, title, xaxis)
+
+
+@app.callback(
+    Output('bottom-line-plot', 'figure'),
+    [Input('crossfilter-scatter1', 'hoverData'),
+     Input('crossfilter-yaxis1', 'value')])
+def update_top_line_plot(hoverData, yaxis):
+    global dfff
+    symbol = hoverData["points"][0]["customdata"]
+    dfff_line = dfff[dfff.symbol == symbol]
+    dfff_mkt = dfff.groupby(["year"], as_index=False).mean()
+    title = f"Line Item: {yaxis} and Company: {COMP_NAME[symbol]}"
+    return create_time_series(dfff_line, dfff_mkt, title, yaxis)
+
+
+
 
