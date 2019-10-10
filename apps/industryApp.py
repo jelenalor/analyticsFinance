@@ -90,8 +90,6 @@ def create_time_series(dff, dff_mkt, title: str, line_item):
             'yaxis': {'automargin': True}}}
 
 
-
-
 """ Layout """
 
 
