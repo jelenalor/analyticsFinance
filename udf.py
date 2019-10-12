@@ -4,7 +4,7 @@ import pandas as pd
 """ General load and merge to full dataset"""
 
 YEARS = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
-
+cp = pd.read_csv(r"data/company_profiles.csv")
 
 def load_df(YEARS):
     df_is = pd.read_csv(r"data/df_is_full.csv")
@@ -143,36 +143,158 @@ def create_scatter(dfff, x_value, y_value, COMP_NAME, COLORS):
 """ Create df for DataTable """
 
 
-def df_for_datatable(df):
+def df_for_datatable(df, cp):
     df_dt = pd.pivot_table(data=df,
                            index=["symbol", "industry"],
                            columns="line_item",
                            values="2018",
                            fill_value=0).reset_index()
+    df_dt = pd.merge(cp[["name", "symbol"]], df_dt,
+                     left_on="symbol",
+                     right_on="symbol")
+    df_dt = df_dt.sort_values(by="industry")
     return df_dt
 
 
 """" Create Barplots for DataTable """
 
-
-def create_barplots(df):
+COLORS = ["#00688B", "#FF6A6A", "#A2B5CD"]
+def create_barplot_pl(df):
     # define figure
-    COLORS = ["red", "blue", "green"]
 
+    # Plot 1 -> PL
+    cols_pl = ['Revenue', 'Gross Profit', 'Operating Income', 'EBIT', 'EBITDA',
+               'Cost of Revenue', 'Interest Expense', 'Operating Expenses',
+               'R&D Expenses', 'Net Income']
+
+    cols_choice = []
+    for c in df.columns:
+        if c in cols_pl:
+            cols_choice.append(c)
     # add traces for each company
     traces = []
     for row in range(df.shape[0]):
         traces.append(go.Bar(
-            x=df.columns[:-2],
-            y=df.iloc[row].values[:-2],
+            x=cols_choice,
+            y=df.iloc[row][cols_choice].values,
             name=df.iloc[row]["symbol"],
             marker_color=COLORS[row]
         ))
 
     return {"data": traces,
-            'layout': dict(title='Metrics by company',
+            'layout': dict(title='P&L Metrics',
                         barmode='group',
                         xaxis_tickangle=-45,
                         bargap=0.15,
-                        bargroupgap=0.1
+                        bargroupgap=0.1,
+                        margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
+                        height= '400px',
+                        width=400
                       )}
+
+
+def create_barplot_bs(df):
+
+    # Plot 2 -> BS
+    cols_bs = ['Cash and cash equivalents', 'Long-term debt', 'Net Debt',
+               'Short-term debt', 'Total assets',
+               'Total current assets', 'Total current liabilities', 'Total debt',
+               'Total liabilities', 'Total non-current assets',
+               'Total non-current liabilities', 'Total shareholders equity',
+               'Working Capital', 'Average Inventory', 'Average Payables',
+                'Average Receivables']
+
+    cols_choice_bs = []
+    for c in df.columns:
+        if c in cols_bs:
+            cols_choice_bs.append(c)
+    # add traces for each company
+    traces = []
+    for row in range(df.shape[0]):
+        traces.append(go.Bar(
+            x=cols_choice_bs,
+            y=df.iloc[row][cols_choice_bs].values,
+            name=df.iloc[row]["symbol"],
+            marker_color=COLORS[row]
+        ))
+
+    return {"data": traces,
+            'layout': dict(title='B&S Metrics',
+                           barmode='group',
+                           xaxis_tickangle=-45,
+                           bargap=0.15,
+                           bargroupgap=0.1,
+                           margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
+                           height='400px',
+                           width=500
+                           )}
+
+
+def create_barplot_ps(df):
+
+    # Plot 3 -> Metrics
+    cols_ps = ['Revenue per Share', 'Net Income per Share',
+              'Operating Cash Flow per Share',
+              'Cash per Share', 'Dividend per Share',
+              'Interest Debt per Share', 'Interest Coverage', 'PE ratio',
+               'PB ratio']
+
+    cols_choice_ps = []
+    for c in df.columns:
+        if c in cols_ps:
+            cols_choice_ps.append(c)
+    # add traces for each company
+    traces = []
+    for row in range(df.shape[0]):
+        traces.append(go.Bar(
+            x=cols_choice_ps,
+            y=df.iloc[row][cols_choice_ps].values,
+            name=df.iloc[row]["symbol"],
+            marker_color=COLORS[row]
+        ))
+
+    return {"data": traces,
+            'layout': dict(title='Values per share/ ratios',
+                           barmode='group',
+                           xaxis_tickangle=-45,
+                           bargap=0.15,
+                           bargroupgap=0.1,
+                           margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
+                           height='500px',
+                           width=350
+                           )}
+
+
+def create_barplot_m(df):
+
+    # Plot 3 -> Metrics
+    cols_m = ['Current ratio', 'Dividend Yield',
+              'Profit Margin', 'Gross Margin',
+              'EPS', 'ROE', 'ROIC',
+              'Debt to Assets', 'Debt to Equity',
+              'Net Debt to EBITDA']
+
+    cols_choice_m = []
+    for c in df.columns:
+        if c in cols_m:
+            cols_choice_m.append(c)
+    # add traces for each company
+    traces = []
+    for row in range(df.shape[0]):
+        traces.append(go.Bar(
+            x=cols_choice_m,
+            y=df.iloc[row][cols_choice_m].values,
+            name=df.iloc[row]["symbol"],
+            marker_color=COLORS[row]
+        ))
+
+    return {"data": traces,
+            'layout': dict(title='Other Metrics',
+                           barmode='group',
+                           xaxis_tickangle=-10,
+                           bargap=0.15,
+                           bargroupgap=0.1,
+                           margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
+                           height='400px',
+                           width=350
+                           )}
