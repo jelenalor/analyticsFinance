@@ -11,20 +11,19 @@ import udf
 
 """ Load data """
 cp = pd.read_csv(r"data/company_profiles.csv")
-df = udf.load_df()
+YEARS = udf.YEARS
+df = udf.df
 list_of_industries = sorted(df["industry"].unique())
-YEARS = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
 
-for yr in YEARS:
-    df[str(yr)] = df[str(yr)].astype(int)
 
 COMP_NAME = {}
 for i, sym in enumerate(cp["symbol"].unique()):
     COMP_NAME[sym] = cp.iloc[i]["name"]
 
 
-
 """ STYLING """
+
+
 COLORS = {
     'background': '#556B2F',
     'text': '#FFFFF0',
@@ -34,7 +33,6 @@ COLORS = {
 MY_COLS = {
     "blue": "#00688B",
     "grey": "#9E9E9E"}
-
 
 
 """ Layout """

@@ -2,20 +2,30 @@ import plotly.graph_objs as go
 import pandas as pd
 
 """ General load and merge to full dataset"""
-def load_df():
+
+YEARS = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018]
+
+
+def load_df(YEARS):
     df_is = pd.read_csv(r"data/df_is_full.csv")
     df_bs = pd.read_csv(r"data/df_bs_full.csv")
     df_m = pd.read_csv(r"data/df_metrics_full.csv")
     df_is["type"] = "income statement"
     df_bs["type"] = "balance sheet"
     df_m["type"] = "metrics"
-    df = pd.concat([df_is, df_bs, df_m], axis=0)
+    df = pd.concat([df_is, df_bs, df_m], axis=0).reset_index()
     df.dropna(inplace=True)
+    for yr in YEARS:
+        df[str(yr)] = df[str(yr)].round(2)
     return df
 
 
+df = load_df(YEARS)
+
 """ INDUSTRY APP"""
-""" SCATTER DF """
+""" scatter DF """
+
+
 def df_for_industry_scatter(df, industry, x_value, y_value, range_slider_value):
     dff = df[df.industry == industry]
     dfff = dff[(dff.line_item == x_value) | (dff.line_item == y_value)]
@@ -24,7 +34,8 @@ def df_for_industry_scatter(df, industry, x_value, y_value, range_slider_value):
                                               "2013", "2014", "2015", "2016",
                                               "2017", "2018"]),
                           index=["symbol", "variable"],
-                          columns="line_item", values="value", fill_value=0).reset_index()
+                          columns="line_item",
+                          values="value", fill_value=0).reset_index()
     dfff = dfff.rename(columns={"variable": "year"})
     dfff["year"] = dfff["year"].astype(int)
     dfff = dfff[dfff.year.between(range_slider_value[0],
@@ -32,7 +43,9 @@ def df_for_industry_scatter(df, industry, x_value, y_value, range_slider_value):
     return dfff
 
 
-""" PLOT DF """
+""" plot DF """
+
+
 def df_for_industry_plot(df, symbol, axis, industry):
     dff = df[df.industry == industry]
     dfff = dff[dff.line_item == axis]
@@ -49,7 +62,9 @@ def df_for_industry_plot(df, symbol, axis, industry):
     return dfff_line, dfff_mkt
 
 
-""" CREATE PLOT """
+""" create PLOT """
+
+
 def create_time_series(dff, dff_mkt, title: str, line_item):
     traces = []
     # company data
@@ -83,7 +98,7 @@ def create_time_series(dff, dff_mkt, title: str, line_item):
             'yaxis': {'automargin': True}}}
 
 
-""" CREATE SCATTER """
+""" create scatter """
 
 
 def create_scatter(dfff, x_value, y_value, COMP_NAME, COLORS):
@@ -120,3 +135,44 @@ def create_scatter(dfff, x_value, y_value, COMP_NAME, COLORS):
             hovermode='closest'
         )
     }
+
+
+""" DATATABLE UDFs """
+
+
+""" Create df for DataTable """
+
+
+def df_for_datatable(df):
+    df_dt = pd.pivot_table(data=df,
+                           index=["symbol", "industry"],
+                           columns="line_item",
+                           values="2018",
+                           fill_value=0).reset_index()
+    return df_dt
+
+
+"""" Create Barplots for DataTable """
+
+
+def create_barplots(df):
+    # define figure
+    COLORS = ["red", "blue", "green"]
+
+    # add traces for each company
+    traces = []
+    for row in range(df.shape[0]):
+        traces.append(go.Bar(
+            x=df.columns[:-2],
+            y=df.iloc[row].values[:-2],
+            name=df.iloc[row]["symbol"],
+            marker_color=COLORS[row]
+        ))
+
+    return {"data": traces,
+            'layout': dict(title='Metrics by company',
+                        barmode='group',
+                        xaxis_tickangle=-45,
+                        bargap=0.15,
+                        bargroupgap=0.1
+                      )}
