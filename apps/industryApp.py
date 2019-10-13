@@ -25,7 +25,7 @@ for i, sym in enumerate(cp["symbol"].unique()):
 
 
 COLORS = {
-    'background': '#556B2F',
+    'background': '#00688B',
     'text': '#FFFFF0',
     'border': '#BCEE68',
     'darktext': '#050505'
@@ -41,7 +41,7 @@ MY_COLS = {
 layout = html.Div([
     html.Div([html.Div([
 
-            html.Div([html.H6("Text title"),
+            html.Div([html.H6("Choose an industry to analyse"),
 
                         dcc.Dropdown(
                             id="dropdown_industry1",
@@ -59,14 +59,14 @@ layout = html.Div([
 
             html.Div([
 
-                html.Div([html.H6("Text title"),
+                html.Div([html.H6("Choose a first line item"),
                     dcc.Dropdown(
                         id="crossfilter-xaxis1",
 
                     )], style={"width": "49%", 'display': 'inline-block',
                                'color': COLORS["darktext"]}),
 
-                html.Div([html.H6("Text title"),
+                html.Div([html.H6("Choose a second line item"),
                     dcc.Dropdown(
                         id='crossfilter-yaxis1'
 

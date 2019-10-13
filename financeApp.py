@@ -71,19 +71,25 @@ index_layout = html.Div([
 
         html.Div([
             dcc.Markdown([""" 
-        ### text
-        bla bla
-        >bla 
+        ## Finance Dashboard
 
-        >bla 
-
-        >bla
-
-        >bla
-
-        >bla
-
-        *header*
+        *Analysing the financial information of over 5,000 publicly traded companies over the last 10 years*
+        
+        
+        * Industry Analysis
+        
+        * Company's Income Statement
+        
+        * Company's Balance Sheet
+        
+        * Company's Metrics and Ratios
+        
+        &nbsp
+        &nbsp
+        
+        *Prepared by Jelena Lor* 
+        
+        *October 2019*
 
         """], style={"textAlign": "center",
                      'width': '70%', 'float': 'right',
