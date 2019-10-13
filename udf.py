@@ -153,6 +153,7 @@ def df_for_datatable(df, cp):
                      left_on="symbol",
                      right_on="symbol")
     df_dt = df_dt.sort_values(by="industry")
+    df_dt.reset_index(inplace=True)
     return df_dt
 
 
@@ -188,7 +189,7 @@ def create_barplot_pl(df):
                         bargap=0.15,
                         bargroupgap=0.1,
                         margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
-                        height= '400px',
+                        height= '300px',
                         width=400
                       )}
 
@@ -225,7 +226,7 @@ def create_barplot_bs(df):
                            bargap=0.15,
                            bargroupgap=0.1,
                            margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
-                           height='400px',
+                           height='300px',
                            width=500
                            )}
 
@@ -260,7 +261,7 @@ def create_barplot_ps(df):
                            bargap=0.15,
                            bargroupgap=0.1,
                            margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
-                           height='500px',
+                           height='300px',
                            width=350
                            )}
 
@@ -295,6 +296,6 @@ def create_barplot_m(df):
                            bargap=0.15,
                            bargroupgap=0.1,
                            margin={'l': 30, 'b': 140, 't': 30, 'r': 10},
-                           height='400px',
+                           height='300px',
                            width=350
                            )}

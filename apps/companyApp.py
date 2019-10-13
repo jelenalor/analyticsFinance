@@ -1,20 +1,14 @@
-import pandas as pd
+import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objs as go
 from dash.dependencies import Input, Output
 
 from app import app
+import udf
 
-""" Load data """
-df = pd.read_csv(r"data/company_profiles.csv")
-df.dropna(inplace=True)
-dff = df[["price", "industry", "name"]].groupby("industry").agg(
-    {"price": "mean", "name": "count"}).rename(
-    columns={"price": "price_avg", "name": "count"})
-dff = dff.round(2)
 
-list_of_industries = df["industry"].unique().tolist()
+""" Data """
+df_dt = udf.df_for_datatable(udf.df, udf.cp)
 
 """ STYLING """
 
@@ -25,114 +19,82 @@ COLORS = {
     'darktext': '#050505'
 }
 MY_COLS = {
-    "blue": "green",
+    "blue": "#00688B",
     "grey": "#9E9E9E"}
 
 """ Layout """
 
 layout = html.Div([
     html.Div([
-
-        html.Div([
-            html.Div([html.H6("Share price distribution by industry")], style={"textAlign": "center"}),
-            dcc.Graph(
-                id='crossfilter-scatter2',
-                figure={
-                    'data': [go.Scatter(
-                        x=dff["price_avg"],
-                        y=dff["count"],
-                        text=[i for i in dff.index],
-                        customdata=dff.index,
-                        mode='markers',
-                        marker={
-                            'size': 15,
-                            'color': MY_COLS["blue"],
-                            'opacity': 0.5,
-                            'line': {'width': 0.5, 'color': 'white'}})],
-                    'layout': go.Layout(
-                        xaxis={'automargin': True,
-                               'title': "average share price"},
-                        yaxis={'automargin': True,
-                               'title': "number of companies"},
-                        margin={'l': 30, 'b': 10, 't': 10, 'r': 10},
-                        height=420,
-                        hovermode='closest')},
-                hoverData={'points': [{'customdata': 'Homebuilding & Construction',
-                                       'text': 'Homebuilding & Construction'}]})],
-            style={'width': '40%', 'height': '30%', 'padding': '0 20', 'display': 'inline-block'}),
-
-        html.Div([
-            dcc.Markdown([""" 
-        ### text
-        bla bla
-        >bla 
-
-        >bla 
-
-        >bla
-
-        >bla
-
-        >bla
-
-        *header*
-
-        """], style={"textAlign": "center",
-                     'width': '70%', 'float': 'right',
-                     'display': 'inline-block', 'backgroundColor': MY_COLS["blue"]}),
-            html.Div([
-                html.H6("Text title")],
-                style={"textAlign": "center", 'backgroundColor': MY_COLS["blue"]}),
-
-            html.Div([
-                html.Div([
-                    dcc.Dropdown(
-                        id="dropdown_industry",
-                        options=[{'label': str(i), 'value': i} for i in list_of_industries],
-                        value="Asset Management"
-                    )], style={"width": "40%",
-                               'color': COLORS["darktext"],
-                               'margin': '5px'}),
-
-                html.Div([
-                    dcc.Link('Navigate to industry analysis', href='/apps/industryApp',
-                             style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
-                                    'color': 'white', 'padding': '5px 10px 100px'}),
-                    html.Br(),
-                    dcc.Link('Navigate back home', href='/',
-                             style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
-                                    'color': 'white', 'padding': '5px 10px 100px'}),
-                ])
-            ],
-                style={'backgroundColor': MY_COLS["blue"],
-                       'padding': '2px 5px', 'color': COLORS["text"]})
-        ],
-            style={'width': '60%', 'float': 'right',
-                   'display': 'inline-block', 'backgroundColor': MY_COLS["blue"]})],
-
-        style={'color': COLORS["darktext"]}),
-
+    dcc.Markdown([""" 
+            ## Year 2018 - Financial Information by company 
+            *Choose up to 3 companies to compare the financial information, and financial metrics/ ratios*
+            """], style={"textAlign": "center",
+               'backgroundColor': MY_COLS["blue"],
+               'color': 'white'
+               }),
     html.Div([
-        dcc.Graph(id="my-boxplot2")],
-        style={"width": "100%", "height": "30%", 'padding': '2px 5px'})])
+            dcc.Link('Navigate back home', href='/',
+                         style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
+                                'padding': '0px 0px 0px 0px', 'color': 'red'}),
+            html.Br(),
+            dcc.Link('Navigate to Industry Analysis', href='/apps/industryApp',
+                     style={'font-family': 'Times New Roman, Times, serif', 'font-weight': 'bold',
+                            'color': 'white'})
+        ])], style={'backgroundColor': MY_COLS["blue"]
+               }),
+
+    dash_table.DataTable(
+        id='datatable_interact',
+        columns=[
+            {"name": i, "id": i, "deletable": False, "selectable": False} for i in df_dt.columns
+        ],
+        style_table={'overflowX': 'scroll',
+                     'maxHeight': '300px',
+                     'overflowY': 'scroll'
+                     },
+        style_cell={
+                'minHeight': '10px', 'maxHeight': '180px',
+                'minWidth': '0px', 'maxWidth': '180px',
+                'whiteSpace': 'normal'
+            },
+        data=df_dt.to_dict('records'),
+        editable=False,
+        filter_action="native",
+        sort_action="native",
+        sort_mode="multi",
+        fixed_rows={'headers': True},
+        column_selectable=False,
+        row_selectable="multi",
+        row_deletable=False,
+        selected_columns=[],
+        selected_rows=[0, 1]
+    ),
+    html.Div([
+    html.Div([dcc.Graph(id='bar_plot')], style={'display': 'inline-block'}),
+    html.Div([dcc.Graph(id='bar_plot1')], style={'display': 'inline-block'}),
+    html.Div([dcc.Graph(id='bar_plot2')], style={'display': 'inline-block'}),
+    html.Div([dcc.Graph(id='bar_plot3')], style={'display': 'inline-block'})
+], style={'display': 'inline-block'})
+])
+
 
 
 @app.callback(
-    Output('my-boxplot2', 'figure'),
-    [Input('crossfilter-scatter2', 'hoverData')])
-def update_figure(hoverOn):
-    traces = []
-    for industry in list_of_industries:
-        if industry == hoverOn["points"][0]["customdata"]:
-            traces.append(go.Box(y=df[df["industry"] == industry]["price"],
-                                 name=industry, marker={"size": 4, "color": MY_COLS["blue"], }))
-        else:
-            traces.append(go.Box(y=df[df["industry"] == industry]["price"],
-                                 name=industry, marker={"size": 4, "color": MY_COLS["grey"], }))
-    return {"data": traces,
-            "layout": go.Layout(autosize=True,
-                                margin={"l": 50, "b": 200, "r": 20, "t": 10},
-                                xaxis={"showticklabels": True},
-                                yaxis={"title": "Share price distribution", "range": [-10, 300]},
-                                showlegend=False)}
+    [Output('bar_plot', "figure"),
+     Output('bar_plot1', "figure"),
+     Output('bar_plot2', "figure"),
+     Output('bar_plot3', "figure")],
+    [Input('datatable_interact', "selected_rows")])
+def update_graphs(selected_rows):
+    dff = df_dt
+    # if none cols selected show all
+    # limit rows to max 3
+    if selected_rows is not None:
+        rows_range = selected_rows[-3:]
+        dff = dff[dff.index.isin(rows_range)]
+        return udf.create_barplot_pl(dff), udf.create_barplot_bs(dff), udf.create_barplot_ps(dff), \
+               udf.create_barplot_m(dff)
+    else:
+        return None, None, None, None
 
