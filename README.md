@@ -5,6 +5,8 @@ Dash Plotly Interactive MultiPage Web Dashboard analysing the financial informat
 
 *October 2019*
 
+**Current version running on**
+https://dash-finapp.herokuapp.com/
 
 **Dependencies:**
 * Dash
