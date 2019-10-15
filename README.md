@@ -8,6 +8,9 @@ Dash Plotly Interactive MultiPage Web Dashboard analysing the financial informat
 **Current version running on**
 https://dash-finapp.herokuapp.com/
 
+**Data** <br>
+Big thank you for data to https://financialmodelingprep.com
+
 **Dependencies:**
 * Dash
 * Plotly
