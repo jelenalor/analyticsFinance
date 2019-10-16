@@ -37,4 +37,8 @@ Big thank you for data to https://financialmodelingprep.com
 
 
 
+**Future improvements**
+
+The data is found to be sometimes incorrect showing inflated figures. Need to come up with an algorithm to clean up the values and get rid of outliers. Tried a simple > 3 std but did not seem to yield a good result. 
+
 WIP
