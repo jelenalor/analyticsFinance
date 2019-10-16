@@ -8,8 +8,22 @@ Dash Plotly Interactive MultiPage Web Dashboard analysing the financial informat
 **Current version running on**
 https://dash-finapp.herokuapp.com/
 
+**WebApp** <br>
+With this WebApp a user can analyse the financial performance of various company's and industries.
+An interactive features means the patterns can be explored across time and compared between companies.
+
+**Use Cases**
+1. Find the industry with the least amount of companies and the most stable and highest share price. See the share price distribution by industry. Compare the number of companies versus average share price per industry. 
+2. Find the best performing company (based on your chosen metrics) within the chosen industry. See the chosen company's financial performance over the last 10 years.
+4. Compare the performance of up to 3 companies across major metrics, such as Revenue, Profit, Assets, EPS, Debt to Equity ratio. Identify momenteraly if the company's performance comes at the cost of high debt etc. 
+5. Find the companies for comparison based on: industry, company's symbol, max or min of specific metrics etc.
+
+
 **Data** <br>
-Big thank you for data to https://financialmodelingprep.com
+Dataset is publicly available and shows the income statement, balance sheet and various financial metric values for over 5,000 publicly traded companies between 2009 and 2018. 
+For example, company's revenue, profit, total assets, EPS etc
+
+Sourced from https://financialmodelingprep.com
 
 **Dependencies:**
 * Dash
